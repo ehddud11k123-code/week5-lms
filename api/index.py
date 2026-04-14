@@ -1,0 +1,32 @@
+import os
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+load_dotenv()
+
+app = FastAPI(title="Week5 LMS API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "https://*.vercel.app",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+from auth import router as auth_router
+from payment import router as payment_router
+from progress import router as progress_router
+
+app.include_router(auth_router, prefix="/api/auth")
+app.include_router(payment_router, prefix="/api/payment")
+app.include_router(progress_router, prefix="/api/progress")
+
+
+@app.get("/api/health")
+def health():
+    return {"status": "ok"}
