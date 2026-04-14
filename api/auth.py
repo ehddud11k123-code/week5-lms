@@ -48,7 +48,8 @@ async def google_auth(body: GoogleAuthRequest):
             "grant_type": "authorization_code",
         })
         if token_res.status_code != 200:
-            raise HTTPException(status_code=400, detail="Google token exchange failed")
+            print("Google error:", token_res.text)
+            raise HTTPException(status_code=400, detail=f"Google token exchange failed: {token_res.text}")
         google_token = token_res.json()["access_token"]
 
         user_res = await client.get(
