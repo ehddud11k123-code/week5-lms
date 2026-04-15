@@ -38,11 +38,24 @@ class SupabaseTable:
         return url
 
     def execute(self):
-        url = self._build_url()
-        if getattr(self, '_single', False):
-            r = httpx.get(url, headers={**headers(), "Accept": "application/vnd.pgrst.object+json"})
+        op = getattr(self, '_operation', 'select')
+
+        if op == "insert":
+            r = httpx.post(self.base, json=self._insert_data, headers=headers())
+        elif op == "upsert":
+            h = {**headers(), "Prefer": "resolution=merge-duplicates,return=representation"}
+            params = {}
+            on_conflict = getattr(self, '_on_conflict', '')
+            if on_conflict:
+                params["on_conflict"] = on_conflict
+            r = httpx.post(self.base, json=self._insert_data, headers=h, params=params)
         else:
-            r = httpx.get(url, headers=headers())
+            url = self._build_url()
+            if getattr(self, '_single', False):
+                r = httpx.get(url, headers={**headers(), "Accept": "application/vnd.pgrst.object+json"})
+            else:
+                r = httpx.get(url, headers=headers())
+
         r.raise_for_status()
         return type('Result', (), {'data': r.json()})()
 
@@ -51,18 +64,15 @@ class SupabaseTable:
         return self
 
     def insert(self, data: dict):
-        r = httpx.post(self.base, json=data, headers=headers())
-        r.raise_for_status()
-        return type('Result', (), {'data': r.json()})()
+        self._insert_data = data
+        self._operation = "insert"
+        return self
 
     def upsert(self, data: dict, on_conflict: str = ""):
-        h = {**headers(), "Prefer": f"resolution=merge-duplicates,return=representation"}
-        params = {}
-        if on_conflict:
-            params["on_conflict"] = on_conflict
-        r = httpx.post(self.base, json=data, headers=h, params=params)
-        r.raise_for_status()
-        return type('Result', (), {'data': r.json()})()
+        self._insert_data = data
+        self._on_conflict = on_conflict
+        self._operation = "upsert"
+        return self
 
 
 class DB:
