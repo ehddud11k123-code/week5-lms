@@ -63,7 +63,6 @@ async def polar_webhook(request: Request):
 
 @router.get("/checkout-url")
 def get_checkout_url():
-    product_id = os.environ.get("POLAR_PRODUCT_ID", "")
     return {
-        "url": f"https://buy.polar.sh/{product_id}"
+        "url": os.environ.get("POLAR_CHECKOUT_URL", "")
     }
