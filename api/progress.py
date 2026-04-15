@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends
 from typing import List
 from models import ProgressUpdate, ProgressResponse
@@ -21,7 +22,7 @@ def update_progress(body: ProgressUpdate, payload: dict = Depends(verify_jwt)):
         "user_id": payload["sub"],
         "section_id": body.section_id,
         "completed": body.completed,
-        "updated_at": "now()",
+        "updated_at": datetime.utcnow().isoformat(),
     }, on_conflict="user_id,section_id").execute()
     row = result.data[0]
     return ProgressResponse(section_id=row["section_id"], completed=row["completed"])
