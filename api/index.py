@@ -28,4 +28,5 @@ app.include_router(progress_router, prefix="/api/progress")
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    keys = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "JWT_SECRET", "SUPABASE_URL", "SUPABASE_SERVICE_KEY"]
+    return {"status": "ok", "env": {k: "SET" if os.environ.get(k) else "MISSING" for k in keys}}
