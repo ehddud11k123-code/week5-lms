@@ -39,7 +39,10 @@ class SupabaseTable:
 
     def execute(self):
         url = self._build_url()
-        r = httpx.get(url, headers=headers())
+        if getattr(self, '_single', False):
+            r = httpx.get(url, headers={**headers(), "Accept": "application/vnd.pgrst.object+json"})
+        else:
+            r = httpx.get(url, headers=headers())
         r.raise_for_status()
         return type('Result', (), {'data': r.json()})()
 
